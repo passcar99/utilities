@@ -1,10 +1,8 @@
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfReader, PdfWriter
 
 def parsePdfName(name):
-    if len(name)<4:
-        return name + '.pdf'
-    if '.pdf'!=name[-4:]:
-        return name + '.pdf'
+    if len(name)<4 or '.pdf'!=name[-4:]:
+        return "{}{}".format(name, '.pdf')
     return name
 
 
@@ -14,7 +12,7 @@ def parsePdfName(name):
 def concatFiles():
     i = 0
     names = []
-    writer = PdfFileWriter()
+    writer = PdfWriter()
     while i != -1 :
         print('\nInput the name of the ', i+1, 'th file, otherwise press E to end: ')
         names.append(input())
@@ -25,9 +23,9 @@ def concatFiles():
     
     for j in range(0, len(names), 1):
         inputs = open(str(parsePdfName(names[j])), 'rb')
-        reader = PdfFileReader(parsePdfName(names[j]))
-        for page in range(0, reader.getNumPages()):
-            writer.addPage(reader.getPage(page))
+        reader = PdfReader(parsePdfName(names[j]))
+        for page in range(0, len(reader.pages)):
+            writer.add_page(reader.pages[page])
         inputs.close()
     
     newPdfName = input('Input the name of the new Pdf: ')
@@ -56,12 +54,12 @@ def slicePdf():
         else:
             print('Error in the input, try again')
     inputfile = open(str(inPdfName), 'rb')
-    reader = PdfFileReader(inputfile)
-    writer = PdfFileWriter()
+    reader = PdfReader(inputfile)
+    writer = PdfWriter()
     for j in range(0, len(slices)):
         for page in range(slices[j][0], slices[j][1]+1):
-            if page <= reader.getNumPages():
-                writer.addPage(reader.getPage(page-1))
+            if page <= len(reader.pages):
+                writer.add_page(reader.pages[page-1])
             else:
                 print('Slice excedes file size')
     
@@ -73,7 +71,7 @@ def slicePdf():
     output.close()
     inputfile.close()
 
-class fileAndSlice():
+class FileAndSlice():
 
     def __init__(self):
         self.fileNames = []
@@ -94,7 +92,7 @@ class fileAndSlice():
 def sliceAndMerge():
     i = 0
     writer = PdfFileWriter()
-    data = fileAndSlice()
+    data = FileAndSlice()
     while(i!=-1):
         fileName = input('Enter file name. Digit 42 to end: ')
         if fileName == '42':
@@ -106,9 +104,9 @@ def sliceAndMerge():
             last = int(input("Last page of the slice: "))
             data.newSlice(first, last)
     for j in range(0, len(data.fileNames)):
-        reader = PdfFileReader(str(data.fileNames[j]))
+        reader = PdfReader(str(data.fileNames[j]))
         for page in range(data.slices[j][0], data.slices[j][1]+1):
-            writer.addPage(reader.getPage(page-1))
+            writer.add_page(reader.pages[page-1])
     outfilename = input("New file name: ")
     output = open(parsePdfName(outfilename), "wb")
     writer.write(output)
